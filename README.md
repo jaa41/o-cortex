@@ -43,25 +43,26 @@ trabalho comece com os autos em ordem e termine com a peça no lugar certo.
 
 ## Módulos
 
-Cada módulo funciona sozinho, sem precisar dos outros.
+Cada módulo funciona sozinho, sem precisar dos outros, e cada um tem os seus próprios requisitos, indicados
+abaixo e no `LEIA-ME.md` da pasta.
 
-| Módulo | Para que serve | Situação | Baixar |
-|---|---|---|---|
-| [**Pré-audiência**](preaudi/LEIA-ME.md) | Você anexa as peças do processo e recebe um painel em HTML para a audiência de instrução: incontroversos × controvertidos com ônus da prova, mapa de provas e roteiro de perguntas por depoente. | em teste | [preaudi.zip](https://github.com/jaa41/o-cortex/releases/tag/preaudi-v0.1.0) |
+| Módulo | Para que serve | O que precisa | Situação | Baixar |
+|---|---|---|---|---|
+| [**Pré-audiência**](preaudi/LEIA-ME.md) | Você anexa as peças do processo e recebe um painel em HTML para a audiência de instrução: incontroversos × controvertidos com ônus da prova, mapa de provas e roteiro de perguntas por depoente. | Claude com plano pago (o Pro serve) e execução de código e criação de arquivos ligada | em teste | [preaudi.zip](https://github.com/jaa41/o-cortex/releases/tag/preaudi-v0.1.0) |
 
 Cada pasta tem um `LEIA-ME.md` com o passo a passo do módulo.
 
 ### Para usuários finais
 
-Os módulos disponíveis hoje são **skills** do Claude: você envia um arquivo `.zip` ao claude.ai uma vez e passa a
-usá-los em qualquer conversa. **Não há nada para instalar no computador.**
+Os módulos que são **skills** do Claude se instalam assim: você envia um arquivo `.zip` ao claude.ai uma vez e
+passa a usá-los em qualquer conversa, sem instalar nada no computador.
 
 1. Abra a aba **Releases** deste repositório (coluna da direita) e baixe o `.zip` do módulo. Não descompacte.
 2. No [claude.ai](https://claude.ai), vá em **Configurações → Capacidades → Skills** e envie o `.zip`.
 3. Deixe a skill ligada e, numa conversa nova, peça o que o módulo faz (o `LEIA-ME.md` diz como).
 
-Você precisa de uma conta **paga** do Claude (o plano Pro serve), com **execução de código e criação de
-arquivos** ligada em Configurações → Capacidades.
+O que cada módulo exige (plano do Claude, recursos ligados, programas no computador) está na coluna **O que
+precisa** da tabela e no `LEIA-ME.md` dele.
 
 ### Para desenvolvedores
 
@@ -75,8 +76,8 @@ gravar nada, o dado que não confere. A licença permite copiar e adaptar.
 
 - São **ferramentas de apoio**. A análise, a valoração da prova e a decisão cabem a quem as assina: confira
   sempre com os autos.
-- O que você anexa é enviado ao Claude. Prefira a conta institucional do seu órgão, se houver, e trate o que
-  sai como trata o processo.
+- Quando um módulo usa um serviço de inteligência artificial, o que você anexa é enviado a esse serviço. Prefira
+  a conta institucional do seu órgão, se houver, e trate o que sai como trata o processo.
 - Nada aqui contém dados de processo real: os exemplos são fictícios.
 
 ## Licença
