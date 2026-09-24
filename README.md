@@ -1,7 +1,17 @@
 # cortex
 
-**As funções executivas do gabinete.** Um ecossistema de gestão judicial, desenvolvido por um juiz do trabalho,
-dentro do gabinete e para o gabinete. [o-cortex.manus.space](https://o-cortex.manus.space)
+**As funções executivas do gabinete.** Ecossistema de gestão judicial.
+[o-cortex.manus.space](https://o-cortex.manus.space)
+
+O Cortex é um sistema desenvolvido pelo Juiz do Trabalho **Jorge Alberto Araujo** como solução para a gestão
+de processos judiciais: adapta os autos para a análise pela inteligência artificial e permite manipulá-los em
+todas as fases do processo, do ingresso ao arquivamento.
+
+São várias ferramentas e aplicativos, e elas estão à disposição tanto de **usuários finais** quanto de
+**desenvolvedores** que queiram conhecer soluções já adotadas para problemas cotidianos dessa gestão. Os
+módulos vão sendo abertos aqui, um a um.
+
+## O que é
 
 Assim como o córtex pré-frontal planeja, prioriza e coordena as áreas especializadas do cérebro, o cortex
 coordena as ferramentas que baixam, recortam, leem, limpam e anonimizam os autos, e os agentes de inteligência
@@ -12,9 +22,6 @@ Tudo começa num painel só. Cada processo ocupa uma linha, com a situação dit
 análise, minuta pronta, publicado. O que chega ao gabinete aparece no topo, com o número do processo já
 identificado e uma sugestão do que fazer. Nada se move sozinho, e nada é apagado: o que não serve mais vai para
 o descarte, até que alguém decida de verdade.
-
-O resultado é o que interessa: menos tempo procurando arquivo e conferindo versão, mais atenção para o que só o
-magistrado pode fazer, que é julgar.
 
 ## Seis funções, uma para cada letra
 
@@ -34,12 +41,9 @@ magistrado pode fazer, que é julgar.
 A inteligência artificial redige a minuta; o juiz lê, corrige, decide e assina. O cortex existe para que esse
 trabalho comece com os autos em ordem e termine com a peça no lugar certo.
 
-## Os módulos abertos
+## Módulos
 
-O cortex é **modular**: cada parte funciona sozinha e pode ser usada sem as outras. Este repositório é onde os
-módulos vão sendo abertos, um a um, para quem quiser usar no seu próprio trabalho. Cada módulo é uma **skill** do
-Claude: você envia um arquivo `.zip` ao claude.ai uma vez e passa a usá-lo em qualquer conversa. **Não há nada
-para instalar no computador.**
+Cada módulo funciona sozinho, sem precisar dos outros.
 
 | Módulo | Para que serve | Situação | Baixar |
 |---|---|---|---|
@@ -47,7 +51,10 @@ para instalar no computador.**
 
 Cada pasta tem um `LEIA-ME.md` com o passo a passo do módulo.
 
-### Como instalar um módulo
+### Para usuários finais
+
+Os módulos disponíveis hoje são **skills** do Claude: você envia um arquivo `.zip` ao claude.ai uma vez e passa a
+usá-los em qualquer conversa. **Não há nada para instalar no computador.**
 
 1. Abra a aba **Releases** deste repositório (coluna da direita) e baixe o `.zip` do módulo. Não descompacte.
 2. No [claude.ai](https://claude.ai), vá em **Configurações → Capacidades → Skills** e envie o `.zip`.
@@ -55,6 +62,14 @@ Cada pasta tem um `LEIA-ME.md` com o passo a passo do módulo.
 
 Você precisa de uma conta **paga** do Claude (o plano Pro serve), com **execução de código e criação de
 arquivos** ligada em Configurações → Capacidades.
+
+### Para desenvolvedores
+
+Cada módulo é uma pasta que se lê de ponta a ponta: o `SKILL.md` (as instruções ao agente), os `scripts/`, o
+modelo em `assets/` e as `references/`. O desenho que se repete, e que pode servir a outros problemas da mesma
+gestão: **o agente grava só dados, em JSON com forma definida, e um script determinístico confere e monta o
+entregável.** O modelo nunca é reescrito pelo agente, o entregável sai sempre igual, e o script recusa, sem
+gravar nada, o dado que não confere. A licença permite copiar e adaptar.
 
 ## Avisos
 
