@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel pré-audiência</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,700;1,7..72,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --papel:#EEF0EF;      /* fundo ardósia claro */
+  --folha:#FFFFFF;
+  --tinta:#1E2A38;      /* texto */
+  --grafite:#5B6570;    /* texto secundário */
+  --linha:#D3D8DB;
+  --autor:#1F6F78;      /* reclamante */
+  --autor-suave:#E1EFF0;
+  --reu:#7A2E3B;        /* reclamado */
+  --reu-suave:#F3E4E7;
+  --misto:#4F5D75;      /* ônus repartido ou dinâmico */
+  --misto-suave:#E4E7EE;
+  --alerta:#B5761B;
+  --alerta-suave:#F7ECD9;
+  --ok:#3E7A4F;
+  --ok-suave:#E3EFE5;
+  --raio:6px;
+  --fonte:"Literata",Georgia,"Times New Roman",serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--papel);color:var(--tinta);font-family:var(--fonte);font-size:16px;line-height:1.55}
+body.grande{font-size:19px}
+a{color:inherit}
+button{font-family:inherit;font-size:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--autor);outline-offset:2px}
+
+/* Cabeçalho fixo */
+.topo{position:sticky;top:0;z-index:5;background:var(--folha);border-bottom:1px solid var(--linha);padding:10px 16px 0}
+.topo .linha1{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-right:230px}
+.processo{font-weight:700;font-size:1.05em;letter-spacing:.01em}
+.audiencia{color:var(--grafite);font-size:.9em}
+.gerado{color:var(--grafite);font-size:.78em;width:100%}
+.partes{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px;font-size:.92em}
+.partes .autor{border-left:4px solid var(--autor);padding-left:8px}
+.partes .reu{border-right:4px solid var(--reu);padding-right:8px;text-align:right}
+.partes small{display:block;color:var(--grafite);font-size:.82em}
+.partes .lista{display:block}
+.partes .lista em{font-style:normal;color:var(--grafite);font-size:.85em}
+.abas{display:flex;gap:2px;overflow-x:auto;margin-top:10px;scrollbar-width:none}
+.abas::-webkit-scrollbar{display:none}
+.aba{white-space:nowrap;padding:8px 12px;border-bottom:3px solid transparent;color:var(--grafite)}
+.aba[aria-selected="true"]{color:var(--tinta);border-bottom-color:var(--tinta);font-weight:500}
+.aba .n{display:inline-block;min-width:1.4em;padding:0 5px;margin-left:4px;border-radius:99px;background:var(--papel);font-size:.78em;text-align:center;color:var(--grafite)}
+.acoes{position:absolute;right:16px;top:10px;display:flex;gap:6px}
+.acoes button{font-size:.8em;color:var(--grafite);border:1px solid var(--linha);border-radius:var(--raio);padding:3px 8px;background:var(--folha)}
+.status-exp{font-size:.78em;color:var(--grafite);max-width:32ch}
+.status-exp.ok{color:var(--ok)}
+.status-exp.erro{color:var(--alerta)}
+
+main{max-width:900px;margin:0 auto;padding:18px 16px 60px}
+section[hidden]{display:none}
+h2{font-size:1.15em;font-weight:700;margin:0 0 10px}
+h3{font-size:1em;font-weight:500;color:var(--grafite);margin:20px 0 8px}
+p{margin:0 0 10px;max-width:70ch}
+
+/* Caso */
+.resumo{background:var(--folha);border:1px solid var(--linha);border-radius:var(--raio);padding:14px 16px;font-size:1.02em}
+.contrato{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--linha);border:1px solid var(--linha);border-radius:var(--raio);overflow:hidden;margin-top:14px}
+.contrato div{background:var(--folha);padding:8px 12px}
+.contrato small{display:block;color:var(--grafite);font-size:.8em}
+.incontro{list-style:none;padding:0;margin:0}
+.incontro li{padding:8px 12px;border-left:3px solid var(--ok);background:var(--ok-suave);margin-bottom:6px;border-radius:0 var(--raio) var(--raio) 0}
+.incontro li span{color:var(--grafite);font-size:.88em}
+.alertas li{padding:8px 12px;border-left:3px solid var(--alerta);background:var(--alerta-suave);margin-bottom:6px;list-style:none;border-radius:0 var(--raio) var(--raio) 0}
+ul.alertas{padding:0}
+
+/* Controvérsias: o ponto central do design */
+.contro{background:var(--folha);border:1px solid var(--linha);border-radius:var(--raio);margin-bottom:14px;overflow:hidden}
+.contro header{padding:10px 14px;display:flex;justify-content:space-between;align-items:baseline;gap:10px;border-bottom:1px solid var(--linha)}
+.contro header b{font-size:1.05em}
+.contro header b i{font-style:normal;color:var(--grafite);font-weight:400;margin-right:6px}
+.contro header span{color:var(--grafite);font-size:.85em;white-space:nowrap}
+.versoes{display:grid;grid-template-columns:1fr 1fr}
+.versoes>div{padding:10px 14px;font-size:.95em}
+.versoes .v-autor{border-left:4px solid var(--autor)}
+.versoes .v-reu{border-right:4px solid var(--reu);text-align:right}
+.versoes small{display:block;color:var(--grafite);font-size:.8em;margin-bottom:2px}
+.versoes .defesa+.defesa{margin-top:8px;padding-top:8px;border-top:1px dashed var(--linha)}
+.onus{position:relative;min-height:34px;border-top:1px solid var(--linha);background:linear-gradient(90deg,var(--autor-suave),var(--folha) 50%,var(--reu-suave));display:flex;align-items:center}
+.onus .marca{height:34px;display:flex;align-items:center;gap:8px;padding:0 12px;font-size:.85em;font-weight:500;color:#fff;flex:none}
+.onus .marca.autor{background:var(--autor);border-radius:0 17px 17px 0;order:0}
+.onus .marca.reu{background:var(--reu);border-radius:17px 0 0 17px;order:2;margin-left:auto}
+.onus .marca.misto{background:var(--misto);border-radius:17px;order:1;margin:0 auto}
+.onus .fund{flex:1;padding:4px 12px;font-size:.8em;color:var(--grafite);order:1}
+.onus .marca.reu~.fund{order:0}
+.onus.repartido{background:var(--misto-suave)}
+.contro footer{padding:8px 14px;font-size:.88em;color:var(--grafite)}
+@media (max-width:520px){
+  .versoes{grid-template-columns:1fr}
+  .versoes .v-reu{border-right:0;border-left:4px solid var(--reu);text-align:left}
+}
+
+/* Provas */
+table{width:100%;border-collapse:collapse;background:var(--folha);border:1px solid var(--linha);border-radius:var(--raio);overflow:hidden;font-size:.93em}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--linha);vertical-align:top}
+th{font-weight:500;color:var(--grafite);font-size:.85em}
+td.num{color:var(--grafite);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.pill{display:inline-block;padding:1px 9px;border-radius:99px;font-size:.82em;white-space:nowrap}
+.pill.completa{background:var(--ok-suave);color:var(--ok)}
+.pill.parcial{background:var(--alerta-suave);color:var(--alerta)}
+.pill.pendente{background:var(--reu-suave);color:var(--reu)}
+.pill.dispensada{background:var(--papel);color:var(--grafite)}
+.parte.autor{color:var(--autor);font-weight:500}
+.parte.reu{color:var(--reu);font-weight:500}
+.parte.misto{color:var(--misto);font-weight:500}
+.tabela-rolagem{overflow-x:auto}
+.legenda{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:.85em;color:var(--grafite)}
+
+/* Roteiro */
+.depoentes{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.depoente{padding:6px 12px;border:1px solid var(--linha);border-radius:99px;background:var(--folha);font-size:.92em}
+.depoente[aria-selected="true"]{background:var(--tinta);color:#fff;border-color:var(--tinta)}
+.depoente.autor[aria-selected="true"]{background:var(--autor);border-color:var(--autor)}
+.depoente.reu[aria-selected="true"]{background:var(--reu);border-color:var(--reu)}
+.depoente.mais{border-style:dashed;color:var(--grafite)}
+.progresso{font-size:.88em;color:var(--grafite);margin-bottom:10px}
+.pergunta{background:var(--folha);border:1px solid var(--linha);border-radius:var(--raio);margin-bottom:8px}
+.pergunta label{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;cursor:pointer}
+.pergunta input[type=checkbox]{width:22px;height:22px;margin:2px 0 0;accent-color:var(--tinta);flex:none}
+.pergunta .txt{flex:1}
+.pergunta .tema{display:block;color:var(--grafite);font-size:.8em;margin-bottom:2px}
+.pergunta.feita .txt{color:var(--grafite);text-decoration:line-through;text-decoration-color:var(--linha)}
+.pergunta textarea{width:100%;border:0;border-top:1px dashed var(--linha);padding:8px 14px 10px 48px;font-family:inherit;font-size:.92em;background:transparent;resize:vertical;min-height:38px;color:var(--tinta)}
+.pergunta textarea::placeholder{color:#A9B0B6}
+.livre{margin-top:14px}
+.livre textarea{width:100%;min-height:80px;border:1px solid var(--linha);border-radius:var(--raio);padding:10px 12px;font-family:inherit;font-size:.95em;background:var(--folha);color:var(--tinta)}
+/* cabeca do depoimento: dispensa (parte) e nome (testemunha) */
+.cabeca-dep{background:var(--folha);border:1px solid var(--linha);border-radius:var(--raio);padding:10px 14px;margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.cabeca-dep .rot{font-weight:600}
+.cabeca-dep small{color:var(--grafite);font-size:.82em;flex-basis:100%;margin-top:2px}
+.cabeca-dep input[type=text]{flex:1;min-width:240px;border:1px solid var(--linha);border-radius:var(--raio);padding:8px 10px;font-family:inherit;font-size:.95em;background:#fff;color:var(--tinta)}
+.cabeca-dep label.disp{display:flex;gap:10px;align-items:center;cursor:pointer}
+.cabeca-dep input[type=checkbox]{width:22px;height:22px;accent-color:var(--tinta);flex:none}
+.lista-perg.fora .pergunta,.lista-perg.fora .livre{opacity:.42}
+.depoente.vazio{border-style:dashed}
+.depoente.vazio:not([aria-selected="true"]){color:var(--grafite)}
+
+/* Verificar */
+.check{list-style:none;padding:0}
+.check li{background:var(--folha);border:1px solid var(--linha);border-radius:var(--raio);margin-bottom:8px}
+.check label{display:flex;gap:12px;padding:11px 14px;cursor:pointer;align-items:flex-start}
+.check input{width:22px;height:22px;accent-color:var(--tinta);flex:none;margin-top:2px}
+.check small{display:block;color:var(--grafite);font-size:.85em}
+
+/* Autos: atalhos para o dossiê e para as peças */
+.links{list-style:none;padding:0;margin:0}
+.links li{background:var(--folha);border:1px solid var(--linha);border-radius:var(--raio);margin-bottom:6px;padding:9px 14px;display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.links a{text-decoration:none;font-weight:500}
+.links a:hover{text-decoration:underline}
+.links small{color:var(--grafite);font-size:.8em;white-space:nowrap}
+.links code{font-family:Consolas,monospace;font-size:.85em;color:var(--grafite);margin-right:6px}
+
+.links.essenciais li{border-left:3px solid var(--toga,#14508c)}
+.rodape{margin-top:30px;color:var(--grafite);font-size:.8em;text-align:center}
+@media print{
+  .topo{position:static}.abas,.acoes,.depoente.mais{display:none}
+  .topo .linha1{padding-right:0}
+  section[hidden]{display:block}section{break-before:page}section:first-of-type{break-before:auto}
+  .lista-perg[hidden]{display:block}
+  .lista-perg.fora{display:none}
+  .lista-perg::before{content:attr(data-nome);display:block;font-weight:700;margin:14px 0 8px}
+  textarea{border:1px solid var(--linha)!important}
+}
+</style>
+</head>
+<body>
+
+<header class="topo">
+  <div class="acoes">
+    <button id="btFonte" title="Aumentar letra">A+</button>
+    <button id="btExportar" title="Baixa um arquivo com as anotações da audiência">Exportar anotações</button>
+    <span id="stExportar" class="status-exp" hidden></span>
+    <button onclick="window.print()" title="Imprimir">Imprimir</button>
+  </div>
+  <div class="linha1">
+    <span class="processo" id="hProcesso"></span>
+    <span class="audiencia" id="hAudiencia"></span>
+    <span class="gerado" id="hGerado"></span>
+  </div>
+  <div class="partes">
+    <div class="autor"><small id="rAutor">Reclamante</small><span class="lista" id="hAutor"></span></div>
+    <div class="reu"><small id="rReu">Reclamado</small><span class="lista" id="hReu"></span></div>
+  </div>
+  <nav class="abas" role="tablist" id="abas"></nav>
+</header>
+
+<main id="conteudo"></main>
+
+<script>
+/* ============================================================
+   DADOS DO CASO — a skill analise-pre-audiencia SUBSTITUI ESTE OBJETO INTEIRO
+   (nunca campo a campo: sobra texto fictício). Tudo abaixo dele é o motor do
+   painel e não muda. Os dados de exemplo são fictícios.
+
+   Campos:
+   - processo, audiencia, gerado_em (data/hora da geração; obrigatório)
+   - autores: [{nome, papel}]   (papel: "reclamante", "reclamante (menor)", ...)
+   - reus:    [{nome, papel}]   (papel: "reclamada", "tomadora", "sócia", ...): litisconsórcio cabe
+   - resumo, contrato [[rótulo, valor]], incontroversos [[fato, motivo]], alertas [texto]
+   - controvertidos: [{tema, pedido, defesa | defesas:[{parte, texto}],
+        onus: "autor" | "reu" | "repartido" | "dinamico", onus_detalhe (texto, para os dois últimos),
+        fundamento, prova}]
+   - provas: [[tema, prova, estado, onus, providencia]]  estado: completa|parcial|pendente|dispensada;
+        onus: "autor" | "reu" | "repartido" | "dinamico" | "—"
+   - roteiro: [{depoente, lado: "autor"|"reu", tipo: "parte"|"testemunha" (opcional),
+        perguntas: [[tema, pergunta]]}]  — quantos forem: reclamante, preposto de cada ré,
+        primeira/segunda/terceira testemunha de cada lado. Sem o campo `tipo`, o NOME decide
+        (contendo "testemunh", é testemunha). O painel completa sozinho o que faltar até
+        TRÊS TESTEMUNHAS DE CADA LADO: as vagas entram com as perguntas-base do lado.
+        Na audiência: depoimento de PARTE tem a marca "dispensado" (marcada, as perguntas
+        não vão para o documento exportado); TESTEMUNHA tem campo de nome (em branco, o
+        bloco inteiro fica fora do documento).
+   - verificar [[documento, responsável, fundamento]], preliminares [[preliminar, análise]]
+   - documentos: [[rótulo, caminho relativo ao painel]]  — os arquivos do dossiê (pré-sentença,
+        registro de provas, índice, núcleo em texto, PDFs): abrem em outra aba
+   - essenciais: [[id do PJe, nome, arquivo PDF, página inicial]] — NÃO ESCREVA ESTE CAMPO.
+        O cortex o preenche sozinho, lendo o índice `00_selecionado_`: petição inicial,
+        emenda, contestações, atas de audiência, sentença anterior e acórdãos do TRT.
+        São as peças que se procura na sala, existam ou não entre as citadas.
+   - pecas: [[id do PJe, nome, arquivo PDF, página inicial]] — cada peça citada abre o PDF
+        dos autos já na página (o índice 00_selecionado_ traz id e páginas)
+   ============================================================ */
+const DADOS = {
+  "processo": "0000000-00.0000.0.00.0000",
+  "audiencia": "Instrução — data, hora",
+  "autores": [
+    {
+      "nome": "Nome da parte autora",
+      "papel": "reclamante"
+    }
+  ],
+  "reus": [
+    {
+      "nome": "Empresa Exemplo Ltda.",
+      "papel": "reclamada"
+    }
+  ],
+  "resumo": "Resumo do caso (exemplo do modelo).",
+  "contrato": [
+    [
+      "Admissão",
+      "data"
+    ]
+  ],
+  "incontroversos": [
+    [
+      "Fato incontroverso",
+      "fonte"
+    ]
+  ],
+  "controvertidos": [
+    {
+      "tema": "Tema",
+      "pedido": "pedido",
+      "defesa": "defesa",
+      "onus": "reu",
+      "prova": "oral"
+    }
+  ],
+  "provas": [
+    [
+      "Tema",
+      "meio",
+      "pendente",
+      "reu",
+      "providência"
+    ]
+  ],
+  "roteiro": [
+    {
+      "depoente": "Reclamante",
+      "lado": "autor",
+      "perguntas": [
+        [
+          "Base",
+          "Pergunta?"
+        ]
+      ]
+    }
+  ],
+  "verificar": [],
+  "preliminares": [],
+  "alertas": [],
+  "pecas": [],
+  "gerado_em": "",
+  "documentos": [],
+  "essenciais": []
+};
+
+/* ============================================================
+   MOTOR DO PAINEL
+   ============================================================ */
+const $ = s=>document.querySelector(s);
+const ROTULO = {autor:"Reclamante", reu:"Reclamado", repartido:"Ônus repartido", dinamico:"Ônus dinâmico (art. 818, §1º)"};
+const ESTADO = {completa:"✅ completa", parcial:"⚠️ parcial", pendente:"❌ pendente", dispensada:"➖ dispensada"};
+const nome = l => ROTULO[l] || l;
+const classeOnus = o => (o==="autor"||o==="reu") ? o : "misto";
+const autores = DADOS.autores || [{nome:DADOS.autor||"Reclamante", papel:"reclamante"}];
+const reus = DADOS.reus || [{nome:DADOS.reu||"Reclamado", papel:"reclamada"}];
+const CHAVE = "painel-preaud:" + DADOS.processo;      // anotações desta audiência, neste navegador
+let roteiro = DADOS.roteiro.map(d=>({...d, perguntas:d.perguntas.map(p=>[...p])}));
+
+/* PARTE x TESTEMUNHA. O campo `tipo` manda; sem ele, o nome decide. A parte
+   (reclamante, preposto) ganha a marca "dispensado"; a testemunha ganha o campo
+   do nome. Depoimento dispensado nao leva as perguntas para o documento; vaga de
+   testemunha sem nome nao vai de jeito nenhum. */
+const ehTestemunha = d => (d.tipo||"").toLowerCase()==="testemunha" || /testemunh/i.test(d.depoente||"");
+const TESTEMUNHAS_POR_LADO = 3;
+const ORDINAL = ["1ª","2ª","3ª","4ª","5ª"];
+const LADO_ROT = {autor:"reclamante", reu:"reclamado"};
+const BASE_PADRAO = [["Base","Que função exercia? Em que período e local trabalhou com o reclamante?"]];
+
+function perguntasBase(lado){
+  const base = roteiro.find(d=>d.lado===lado && ehTestemunha(d)) || roteiro.find(d=>d.lado===lado);
+  const dela = base ? base.perguntas.filter(q=>q[0]==="Base") : [];
+  return (dela.length ? dela : BASE_PADRAO).map(q=>[...q]);
+}
+/* O painel fica SEMPRE pronto para tres testemunhas de cada lado. As vagas entram
+   depois do que a skill trouxe e ANTES dos depoentes acrescentados a mao, para que
+   os indices (que guardam as anotacoes) nao mudem de uma abertura para outra. */
+function completarTestemunhas(){
+  ["autor","reu"].forEach(lado=>{
+    const tem = roteiro.filter(d=>d.lado===lado && ehTestemunha(d)).length;
+    for(let k=tem; k<TESTEMUNHAS_POR_LADO; k++){
+      roteiro.push({depoente:`${ORDINAL[k]} testemunha do ${LADO_ROT[lado]}`, lado,
+                    tipo:"testemunha", auto:true, perguntas:perguntasBase(lado)});
+    }
+  });
+}
+function campoNome(i){ const t=document.querySelector(`[data-nomedep="${i}"]`); return t ? t.value.trim() : ""; }
+function campoLivre(i){ const t=document.querySelector(`[data-livre="${i}"]`); return t ? t.value.trim() : ""; }
+/* As perguntas que receberam marca ou resposta — o que de fato foi perguntado. */
+function perguntasEscritas(d,i){
+  return d.perguntas.map((q,j)=>{
+    const cb=document.querySelector(`[data-perg="${i}-${j}"]`), nt=document.querySelector(`[data-nota="${i}-${j}"]`);
+    const marcada = !!(cb && cb.checked), resposta = nt ? nt.value.trim() : "";
+    return (marcada || resposta) ? {q, j, marcada, resposta} : null;
+  }).filter(Boolean);
+}
+function dispensado(i){ const c=document.querySelector(`[data-dispensa="${i}"]`); return !!(c && c.checked); }
+/* Entra no documento exportado? Testemunha precisa de nome; parte, de nao estar dispensada. */
+function entraNoDocumento(i){
+  const d = roteiro[i]; if(!d) return true;
+  if(!ehTestemunha(d)) return !dispensado(i);
+  // vaga de testemunha: o nome basta; sem ele, basta ter sido escrito alguma coisa
+  // (observação ou resposta) — nada digitado pode sumir do documento
+  return !!campoNome(i) || !!campoLivre(i) || perguntasEscritas(d,i).length > 0;
+}
+
+$("#hProcesso").textContent = DADOS.processo;
+$("#hAudiencia").textContent = DADOS.audiencia;
+$("#hGerado").textContent = DADOS.gerado_em ? "Gerado em " + DADOS.gerado_em : "";
+$("#rAutor").textContent = autores.length>1 ? "Reclamantes" : "Reclamante";
+$("#rReu").textContent = reus.length>1 ? "Reclamadas" : "Reclamado";
+/* Link de peça: abre o PDF dos autos já na página. Serve aos dois blocos da aba
+   Autos — as essenciais (o cortex acha no índice) e as citadas (a sessão listou). */
+const pecaHtml = ([id,n,arq,pg]) =>
+  `<li><a href="${arq}#page=${pg}" target="_blank" rel="noopener"><code>${id}</code> ${n}</a><small>${arq}, p. ${pg}</small></li>`;
+
+const partesHtml = lista => lista.map(p=>`${p.nome}${p.papel?` <em>(${p.papel})</em>`:""}`).join("<br>");
+$("#hAutor").innerHTML = partesHtml(autores);
+$("#hReu").innerHTML = partesHtml(reus);
+
+function totalPerg(){ return roteiro.reduce((n,d)=>n+d.perguntas.length,0); }
+
+function defesasHtml(c){
+  const lista = c.defesas || [{parte:"", texto:c.defesa||""}];
+  return lista.map(d=>`<div class="defesa"><small>Defesa${d.parte?` — ${d.parte}`:""}</small>${d.texto}</div>`).join("");
+}
+function onusHtml(c){
+  const cls = classeOnus(c.onus);
+  const rot = cls==="misto" ? nome(c.onus) : `Ônus: ${nome(c.onus)}`;
+  const det = c.onus_detalhe ? ` · ${c.onus_detalhe}` : "";
+  return `<div class="onus ${cls==="misto"?"repartido":""}">
+    <div class="marca ${cls}">${rot}</div>
+    <div class="fund">${c.fundamento||""}${det}</div>
+  </div>`;
+}
+
+/* A cabeca do depoimento: a parte tem a dispensa; a testemunha, o nome. */
+function cabecaDep(d,i){
+  if(ehTestemunha(d)) return `<div class="cabeca-dep">
+    <span class="rot">Nome da testemunha</span>
+    <input type="text" data-nomedep="${i}" autocomplete="off" placeholder="Nome de quem depôs">
+    <small>Sem o nome, a vaga só entra nas anotações exportadas se você escrever alguma coisa nela — observação ou resposta. Em branco de todo, fica fora.</small>
+  </div>`;
+  return `<div class="cabeca-dep">
+    <label class="disp"><input type="checkbox" data-dispensa="${i}"><span class="rot">Depoimento dispensado</span></label>
+    <small>Marcado, as perguntas não vão para o documento exportado: fica só o registro da dispensa e o que você anotar no campo livre.</small>
+  </div>`;
+}
+
+function montar(){
+  const ABAS = [
+    ["caso","Caso"],
+    ["contro","Controvérsias",DADOS.controvertidos.length],
+    ["provas","Provas",DADOS.provas.length],
+    ["roteiro","Roteiro",totalPerg()],
+    ["verificar","Verificar",DADOS.verificar.length+DADOS.preliminares.length],
+    ["autos","Autos",(DADOS.documentos||[]).length+(DADOS.pecas||[]).length+(DADOS.essenciais||[]).length]
+  ].filter(a=>a[0]!=="autos"||a[2]>0);
+  const abaAtual = document.querySelector('.aba[aria-selected="true"]')?.dataset.aba || "caso";
+  $("#abas").innerHTML = ABAS.map(([id,rot,n])=>
+    `<button class="aba" role="tab" data-aba="${id}" aria-selected="${id===abaAtual}">${rot}${n?`<span class="n">${n}</span>`:""}</button>`).join("");
+
+  $("#conteudo").innerHTML = `
+<section id="s-caso" ${abaAtual!=="caso"?"hidden":""}>
+  <div class="resumo">${DADOS.resumo}</div>
+  <div class="contrato">${DADOS.contrato.map(([k,v])=>`<div><small>${k}</small>${v}</div>`).join("")}</div>
+  <h3>Pontos incontroversos — decidir desde já</h3>
+  <ul class="incontro">${DADOS.incontroversos.map(([f,m])=>`<li>${f} <span>(${m})</span></li>`).join("")}</ul>
+  ${DADOS.alertas.length?`<h3>Alertas</h3><ul class="alertas">${DADOS.alertas.map(a=>`<li>${a}</li>`).join("")}</ul>`:""}
+</section>
+
+<section id="s-contro" ${abaAtual!=="contro"?"hidden":""}>
+  ${DADOS.controvertidos.map((c,i)=>`
+  <article class="contro">
+    <header><b><i>${i+1}.</i>${c.tema}</b><span>${c.prova}</span></header>
+    <div class="versoes">
+      <div class="v-autor"><small>Pedido</small>${c.pedido}</div>
+      <div class="v-reu">${defesasHtml(c)}</div>
+    </div>
+    ${onusHtml(c)}
+  </article>`).join("")}
+</section>
+
+<section id="s-provas" ${abaAtual!=="provas"?"hidden":""}>
+  <div class="tabela-rolagem"><table>
+    <thead><tr><th>#</th><th>Tema</th><th>Prova</th><th>Estado</th><th>Ônus</th><th>Providência</th></tr></thead>
+    <tbody>${DADOS.provas.map(([t,p,s,o,prov],i)=>`<tr>
+      <td class="num">${i+1}</td><td>${t}</td><td>${p}</td>
+      <td><span class="pill ${s}">${ESTADO[s]||s}</span></td>
+      <td>${o in ROTULO?`<span class="parte ${classeOnus(o)}">${nome(o)}</span>`:o}</td>
+      <td>${prov}</td></tr>`).join("")}</tbody>
+  </table></div>
+  <div class="legenda"><span>✅ completa — prova já produzida</span><span>⚠️ parcial — incompleta</span><span>❌ pendente — não produzida</span><span>➖ dispensada — ponto incontroverso</span></div>
+</section>
+
+<section id="s-roteiro" ${abaAtual!=="roteiro"?"hidden":""}>
+  <div class="depoentes" role="tablist">${roteiro.map((d,i)=>
+    `<button class="depoente ${d.lado}" role="tab" data-dep="${i}" aria-selected="${i===0}">${d.depoente}</button>`).join("")}
+    <button class="depoente mais" id="btMais" title="Acrescentar depoente que não estava previsto">+ depoente</button></div>
+  <div class="progresso" id="progresso"></div>
+  ${roteiro.map((d,i)=>`<div class="lista-perg" data-lista="${i}" data-nome="${d.depoente}" ${i?"hidden":""}>
+    ${cabecaDep(d,i)}
+    ${d.perguntas.map(([tema,q],j)=>`
+    <div class="pergunta">
+      <label><input type="checkbox" data-perg="${i}-${j}"><span class="txt"><span class="tema">${tema}</span>${q}</span></label>
+      <textarea rows="1" data-nota="${i}-${j}" placeholder="Anotar resposta"></textarea>
+    </div>`).join("")}
+    <div class="livre"><textarea data-livre="${i}" placeholder="Observações deste depoimento — só este campo preenchido já vai para o documento"></textarea></div>
+  </div>`).join("")}
+</section>
+
+<section id="s-verificar" ${abaAtual!=="verificar"?"hidden":""}>
+  <h3>Documentos a exigir</h3>
+  <ul class="check">${DADOS.verificar.map(([d,r,f],i)=>`<li><label><input type="checkbox" data-doc="${i}"><span>${d}<small>${r} — ${f}</small></span></label></li>`).join("")}</ul>
+  ${DADOS.preliminares.length?`<h3>Preliminares</h3>
+  <ul class="check">${DADOS.preliminares.map(([p,a],i)=>`<li><label><input type="checkbox" data-prel="${i}"><span>${p}<small>${a}</small></span></label></li>`).join("")}</ul>`:""}
+  <p class="rodape">Ferramenta de apoio. A análise, a valoração da prova e as decisões cabem ao magistrado.</p>
+</section>
+
+<section id="s-autos" ${abaAtual!=="autos"?"hidden":""}>
+  ${(DADOS.essenciais||[]).length?`<h3>Peças da audiência — abrem o PDF na página</h3>
+  <ul class="links pecas essenciais">${DADOS.essenciais.map(pecaHtml).join("")}</ul>`:""}
+  <h3>Documentos do dossiê</h3>
+  <ul class="links">${(DADOS.documentos||[]).map(([r,c])=>`<li><a href="${c}" target="_blank" rel="noopener">${r}</a><small>${c}</small></li>`).join("")}</ul>
+  ${(DADOS.pecas||[]).length?`<h3>Peças citadas — abrem o PDF na página</h3>
+  <ul class="links pecas">${DADOS.pecas.map(pecaHtml).join("")}</ul>`:""}
+  <p class="rodape">Os caminhos são relativos à pasta do painel: ele deve ficar na pasta do dossiê.</p>
+</section>`;
+  restaurar();
+  pintarFora();
+  pintarAbas();
+  atualizaProgresso();
+}
+
+/* Esmaece (e tira da impressao) o depoimento que nao vai para o documento. */
+function pintarFora(){
+  document.querySelectorAll(".lista-perg").forEach(l=>{
+    l.classList.toggle("fora", !entraNoDocumento(+l.dataset.lista));
+  });
+}
+/* A aba da testemunha passa a mostrar o nome digitado; vaga em branco fica tracejada. */
+function pintarAbas(){
+  document.querySelectorAll(".depoente[data-dep]").forEach(b=>{
+    const i = +b.dataset.dep, d = roteiro[i];
+    if(!d) return;
+    const n = ehTestemunha(d) ? campoNome(i) : "";
+    b.textContent = n || d.depoente;
+    b.title = n ? d.depoente : "";
+    b.classList.toggle("vazio", ehTestemunha(d) && !n);
+  });
+}
+
+/* anotações persistem neste navegador, por processo (localStorage); Exportar grava na pasta do processo via Cortex, ou baixa */
+function estado(){
+  // as vagas automaticas nao sao "extras": o painel as recria igual a cada abertura
+  const e = {marcas:{}, notas:{}, livres:{}, docs:{}, prels:{}, nomes:{}, dispensas:{},
+             extras:roteiro.filter(d=>!d.auto).slice(DADOS.roteiro.length)};
+  document.querySelectorAll("[data-perg]").forEach(c=>{ if(c.checked) e.marcas[c.dataset.perg]=1; });
+  document.querySelectorAll("[data-nota]").forEach(t=>{ if(t.value.trim()) e.notas[t.dataset.nota]=t.value; });
+  document.querySelectorAll("[data-livre]").forEach(t=>{ if(t.value.trim()) e.livres[t.dataset.livre]=t.value; });
+  document.querySelectorAll("[data-doc]").forEach(c=>{ if(c.checked) e.docs[c.dataset.doc]=1; });
+  document.querySelectorAll("[data-prel]").forEach(c=>{ if(c.checked) e.prels[c.dataset.prel]=1; });
+  document.querySelectorAll("[data-nomedep]").forEach(t=>{ if(t.value.trim()) e.nomes[t.dataset.nomedep]=t.value.trim(); });
+  document.querySelectorAll("[data-dispensa]").forEach(c=>{ if(c.checked) e.dispensas[c.dataset.dispensa]=1; });
+  return e;
+}
+function salvar(){ try{ localStorage.setItem(CHAVE, JSON.stringify(estado())); }catch(_){} }
+function restaurar(){
+  let e; try{ e = JSON.parse(localStorage.getItem(CHAVE)||"null"); }catch(_){ e=null; }
+  if(!e) return;
+  document.querySelectorAll("[data-perg]").forEach(c=>{ c.checked=!!e.marcas[c.dataset.perg]; c.closest(".pergunta").classList.toggle("feita",c.checked); });
+  document.querySelectorAll("[data-nota]").forEach(t=>{ t.value=e.notas[t.dataset.nota]||""; ajustaAltura(t); });
+  document.querySelectorAll("[data-livre]").forEach(t=>{ t.value=e.livres[t.dataset.livre]||""; });
+  document.querySelectorAll("[data-doc]").forEach(c=>{ c.checked=!!e.docs[c.dataset.doc]; });
+  document.querySelectorAll("[data-prel]").forEach(c=>{ c.checked=!!e.prels[c.dataset.prel]; });
+  document.querySelectorAll("[data-nomedep]").forEach(t=>{ t.value=(e.nomes||{})[t.dataset.nomedep]||""; });
+  document.querySelectorAll("[data-dispensa]").forEach(c=>{ c.checked=!!(e.dispensas||{})[c.dataset.dispensa]; });
+}
+(function prepararRoteiro(){
+  completarTestemunhas();          // as vagas, sempre nas mesmas posicoes
+  try{ const e = JSON.parse(localStorage.getItem(CHAVE)||"null"); if(e&&e.extras) roteiro = roteiro.concat(e.extras); }catch(_){}
+})();
+
+function textoAnotacoes(){
+  const NL = String.fromCharCode(10);
+  const linhas = [`Anotações da audiência — ${DADOS.processo} — ${DADOS.audiencia}`, `Exportado em ${new Date().toLocaleString("pt-BR")}`, ""];
+  roteiro.forEach((d,i)=>{
+    const testemunha = ehTestemunha(d);
+    const nome = campoNome(i);
+    const recuar = t => t.replaceAll(NL, NL + "       ");
+    const anotacaoLivre = () => {
+      const lv = campoLivre(i);
+      if(lv) linhas.push("    Anotações: " + recuar(lv));
+    };
+    if(testemunha && !nome){
+      // Vaga sem nome. Escrita em branco, não foi usada: fica fora do documento.
+      // Mas o que o magistrado anotou ali vale por si — "não compareceu",
+      // "contradita acolhida", "dispensada pelas partes" — e não pode sumir.
+      const escritas = perguntasEscritas(d,i);
+      if(!campoLivre(i) && !escritas.length) return;
+      linhas.push(`## ${d.depoente} (sem nome anotado)`);
+      escritas.forEach(({q,marcada,resposta})=>{
+        linhas.push(`${marcada?"[x]":"[ ]"} (${q[0]}) ${q[1]}`);
+        if(resposta) linhas.push("    R: " + recuar(resposta));
+      });
+      anotacaoLivre();
+      linhas.push("");
+      return;
+    }
+    linhas.push(`## ${testemunha ? `${nome} — ${d.depoente}` : d.depoente}`);
+    // parte com o depoimento dispensado: fica o registro, sem as perguntas
+    if(!testemunha && dispensado(i)){
+      linhas.push("Depoimento dispensado.");
+      anotacaoLivre();
+      linhas.push("");
+      return;
+    }
+    d.perguntas.forEach(([tema,q],j)=>{
+      const cb=document.querySelector(`[data-perg="${i}-${j}"]`), nt=document.querySelector(`[data-nota="${i}-${j}"]`);
+      linhas.push(`${cb&&cb.checked?"[x]":"[ ]"} (${tema}) ${q}`);
+      if(nt&&nt.value.trim()) linhas.push("    R: " + recuar(nt.value.trim()));
+    });
+    anotacaoLivre();
+    linhas.push("");
+  });
+  return linhas.join(NL);
+}
+function baixarAnotacoes(texto){
+  const blob = new Blob([texto], {type:"text/plain;charset=utf-8"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = `04_anotacoes_audiencia-${DADOS.processo}.md`; a.click(); URL.revokeObjectURL(a.href);
+}
+function avisarExport(msg, ok){
+  const el = $("#stExportar"); if(!el) return;
+  el.hidden = false;
+  el.textContent = msg;
+  el.className = "status-exp " + (ok ? "ok" : "erro");
+}
+function exportar(){
+  const texto = textoAnotacoes();
+  if(!DADOS.cortex_anotacoes){ baixarAnotacoes(texto); avisarExport("Arquivo baixado.", true); return; }
+  const url = DADOS.cortex_anotacoes || "http://127.0.0.1:8765/anotacoes";
+  avisarExport("Gravando na pasta do processo…", true);
+  fetch(url, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({processo: DADOS.processo, texto})
+  }).then(r => r.json().then(j => ({r, j})).catch(() => ({r, j:{}})))
+    .then(({r, j}) => {
+      if(r.ok && j.ok){
+        avisarExport("Gravado: " + (j.arquivo || "04_anotacoes_audiencia"), true);
+        return;
+      }
+      throw new Error(j.erro || j.mensagem || ("HTTP " + r.status));
+    })
+    .catch(() => {
+      baixarAnotacoes(texto);
+      avisarExport("Cortex fechado — baixei o arquivo", false);
+    });
+}
+
+function ajustaAltura(t){ t.style.height="auto"; t.style.height=t.scrollHeight+"px"; }
+function atualizaProgresso(){
+  const lista=document.querySelector(".lista-perg:not([hidden])"); if(!lista) return;
+  const cbs=[...lista.querySelectorAll("[data-perg]")];   // so' as perguntas: a caixa da dispensa nao conta
+  const feitas=cbs.filter(c=>c.checked).length;
+  const geral=[...document.querySelectorAll("[data-perg]")].filter(c=>c.checked).length;
+  $("#progresso").textContent=`${feitas} de ${cbs.length} neste depoimento · ${geral} de ${totalPerg()} no total`;
+}
+
+/* abas principais */
+$("#abas").addEventListener("click",e=>{
+  const b=e.target.closest(".aba"); if(!b) return;
+  document.querySelectorAll(".aba").forEach(x=>x.setAttribute("aria-selected",x===b));
+  document.querySelectorAll("main>section").forEach(s=>s.hidden = s.id!=="s-"+b.dataset.aba);
+  window.scrollTo({top:0});
+});
+/* depoentes, inclusive os acrescentados na hora */
+document.addEventListener("click",e=>{
+  const mais=e.target.closest("#btMais");
+  if(mais){
+    const n=prompt("Nome do depoente (ex.: 3ª testemunha do reclamante):"); if(!n) return;
+    const lado=confirm("É depoente do lado do reclamante?\nOK = reclamante · Cancelar = reclamado") ? "autor" : "reu";
+    const base = roteiro.find(d=>d.lado===lado && d.perguntas.some(p=>p[0]==="Base"));
+    const perguntas = base ? base.perguntas.filter(p=>p[0]==="Base").map(p=>[...p]) : [["Base","Que função exercia? Em que período e local trabalhou com o reclamante?"]];
+    roteiro.push({depoente:n, lado, perguntas});
+    salvar(); montar();
+    document.querySelector(`.depoente[data-dep="${roteiro.length-1}"]`)?.click();
+    return;
+  }
+  const b=e.target.closest(".depoente"); if(!b||b.classList.contains("mais")) return;
+  document.querySelectorAll(".depoente").forEach(x=>x.setAttribute("aria-selected",x===b));
+  document.querySelectorAll(".lista-perg").forEach(l=>l.hidden = l.dataset.lista!==b.dataset.dep);
+  atualizaProgresso();
+});
+/* marcação de perguntas, progresso e persistência */
+document.addEventListener("change",e=>{
+  if(e.target.matches("[data-perg]")){
+    e.target.closest(".pergunta").classList.toggle("feita",e.target.checked);
+    atualizaProgresso();
+  }
+  if(e.target.matches("[data-dispensa]") || e.target.matches("[data-perg]")) pintarFora();
+  salvar();
+});
+document.addEventListener("input",e=>{
+  if(e.target.tagName==="TEXTAREA"){
+    if(e.target.dataset.nota!==undefined) ajustaAltura(e.target);
+    pintarFora();                       // observação escrita tira a vaga do esmaecido
+    salvar();
+  }
+  if(e.target.matches("[data-nomedep]")){ pintarFora(); pintarAbas(); salvar(); }
+});
+$("#btFonte").addEventListener("click",()=>{
+  const g=document.body.classList.toggle("grande");
+  $("#btFonte").textContent=g?"A−":"A+";
+});
+$("#btExportar").addEventListener("click",exportar);
+montar();
+</script>
+</body>
+</html>
